@@ -1,4 +1,47 @@
 
+
+def return_txt(nome_arquivo,q,alfabeto,funcs,q_inicial,f,cabecalho):
+    with open(nome_arquivo + ".txt", "w") as file:
+        estados = "Q: "
+        alfabetos = "Σ: "
+        q_inicials = "q0: "
+        estados_finais = "F: "
+        funcoes = "δ: \n"
+        for i,estado in enumerate(q["Q"]):
+            if i == (len(q["Q"])-1):
+                estados = estados + estado + "\n"
+            else:
+                estados = estados + estado + ", "
+        for i,simbolo in enumerate(alfabeto["alfabeto"]):
+            if i == (len(alfabeto["alfabeto"])-1):
+                alfabetos = alfabetos + simbolo + "\n"
+            else:
+                alfabetos = alfabetos + simbolo + ", "
+        for i, estado_inicial in enumerate(q_inicial["q0"]):
+            if i == (len(q_inicial["q0"])-1):
+                q_inicials = q_inicials + estado_inicial + "\n"
+            else:
+                q_inicials = q_inicials + estado_inicial + ", "
+        for i, estado_final in enumerate(f["F"]):
+            if i == (len(f["F"])-1):
+                estados_finais = estados_finais + estado_final + "\n"
+            else:
+                estados_finais = estados_finais + estado_final + ", "
+        file.write(cabecalho)
+        file.write(estados)
+        file.write(alfabetos)
+        file.write(funcoes)
+        for funcao in funcs["funcoes"]:
+            for estado in funcs["funcoes"][funcao]:
+                string_funcao = funcao + ", " + estado[0] + " -> " + estado[1] + "\n"
+                file.write(string_funcao)
+        file.write(q_inicials)
+        file.write(estados_finais)
+        file.close()
+
+def afnd_to_afd(q,alfabeto,funcs,q_inicial,f):
+    pass
+
 def check_dicts_txt(dicionario, chave, linha_tratada):
     for i in range(1, len(linha_tratada)):
         if not dicionario:
@@ -62,44 +105,4 @@ print(funcs)
 print(q_inicial)
 print(f)
 
-def return_txt(q,alfabeto,funcs,q_inicial,f,cabecalho):
-    with open("AFN.txt", "w") as file:
-        estados = "Q: "
-        alfabetos = "Σ: "
-        q_inicials = "q0: "
-        estados_finais = "F: "
-        funcoes = "δ: \n"
-        for i,estado in enumerate(q["Q"]):
-            if i == (len(q["Q"])-1):
-                estados = estados + estado + "\n"
-            else:
-                estados = estados + estado + ", "
-        for i,simbolo in enumerate(alfabeto["alfabeto"]):
-            if i == (len(alfabeto["alfabeto"])-1):
-                alfabetos = alfabetos + simbolo + "\n"
-            else:
-                alfabetos = alfabetos + simbolo + ", "
-        for i, estado_inicial in enumerate(q_inicial["q0"]):
-            if i == (len(q_inicial["q0"])-1):
-                q_inicials = q_inicials + estado_inicial + "\n"
-            else:
-                q_inicials = q_inicials + estado_inicial + ", "
-        for i, estado_final in enumerate(f["F"]):
-            if i == (len(f["F"])-1):
-                estados_finais = estados_finais + estado_final + "\n"
-            else:
-                estados_finais = estados_finais + estado_final + ", "
-        file.write(cabecalho)
-        file.write(estados)
-        file.write(alfabetos)
-        file.write(funcoes)
-        for funcao in funcs["funcoes"]:
-            for estado in funcs["funcoes"][funcao]:
-                string_funcao = funcao + ", " + estado[0] + " -> " + estado[1] + "\n"
-                file.write(string_funcao)
-        file.write(q_inicials)
-        file.write(estados_finais)
-        file.close()
-return_txt(q,alfabeto,funcs,q_inicial,f, "# AFN Original\n")
-def afnd_to_afd(q,alfabeto,funcs,q_inicial,f):
-    pass
+return_txt("AFN",q,alfabeto,funcs,q_inicial,f, "# AFN Original \n")
