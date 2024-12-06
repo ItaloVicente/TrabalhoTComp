@@ -62,9 +62,8 @@ print(funcs)
 print(q_inicial)
 print(f)
 
-def return_txt(q,alfabeto,funcs,q_inicial,f):
+def return_txt(q,alfabeto,funcs,q_inicial,f,cabecalho):
     with open("AFN.txt", "w") as file:
-        cabecalho = "# AFN Original \n"
         estados = "Q: "
         alfabetos = "Σ: "
         q_inicials = "q0: "
@@ -101,6 +100,6 @@ def return_txt(q,alfabeto,funcs,q_inicial,f):
         file.write(q_inicials)
         file.write(estados_finais)
         file.close()
-return_txt(q,alfabeto,funcs,q_inicial,f)
+return_txt(q,alfabeto,funcs,q_inicial,f, "# AFN Original\n")
 def afnd_to_afd(q,alfabeto,funcs,q_inicial,f):
     pass
