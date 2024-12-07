@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+#cheque se seu terminal e/ou python printa e ler simbolos especiais
+
 from itertools import combinations
 
 def return_txt(nome_arquivo,q,alfabeto,funcs,q_inicial,f,cabecalho):
-    with open(nome_arquivo + ".txt", "w") as file:
+    with open(nome_arquivo + ".txt", "w", encoding="utf-8") as file:
         estados = "Q: "
         alfabetos = "Σ: "
         q_inicials = "q0: "
@@ -27,7 +30,7 @@ def return_txt(nome_arquivo,q,alfabeto,funcs,q_inicial,f,cabecalho):
                 estados_finais = estados_finais + estado_final + "\n"
             else:
                 estados_finais = estados_finais + estado_final + ", "
-        file.write(cabecalho)
+        file.write(cabecalho+"\n")
         file.write(estados)
         file.write(alfabetos)
         file.write(funcoes)
@@ -39,7 +42,7 @@ def return_txt(nome_arquivo,q,alfabeto,funcs,q_inicial,f,cabecalho):
         file.write(estados_finais)
         file.close()
 
-def epsilon_closure_q0(estado, funcs):
+def epsilon_closure(estado, funcs):
     # Inicia o fecho com o próprio estado
     fecho = [estado]
     # Pilha para explorar novos estados
@@ -48,14 +51,15 @@ def epsilon_closure_q0(estado, funcs):
     while stack:
         current = stack.pop()
         # Verificar se há transições "E" a partir do estado atual
-        for transicoes in funcs["funcoes"][current]:
-            if "E" in transicoes[0]:
-                prox_estado = transicoes[1]
-                if prox_estado not in fecho and prox_estado in funcs["funcoes"]:
-                    fecho.append(prox_estado)
-                    stack.append(prox_estado)
-                elif prox_estado not in fecho and prox_estado not in funcs["funcoes"]:
-                    fecho.append(prox_estado)
+        if estado in funcs["funcoes"]:
+            for transicoes in funcs["funcoes"][current]:
+                if "E" in transicoes[0]:
+                    prox_estado = transicoes[1]
+                    if prox_estado not in fecho and prox_estado in funcs["funcoes"]:
+                        fecho.append(prox_estado)
+                        stack.append(prox_estado)
+                    elif prox_estado not in fecho and prox_estado not in funcs["funcoes"]:
+                        fecho.append(prox_estado)
     new_q0 = "{"
     for i, estado in enumerate(fecho):
         if i != len(fecho)-1:
@@ -63,31 +67,77 @@ def epsilon_closure_q0(estado, funcs):
         elif i == len(fecho)-1:
             new_q0 = new_q0 + estado + "}"
     return new_q0
-def afnd_to_afd(q, alfabeto, funcs, q_inicial, f):
-    new_q = {"Q": []}
+def combinacao_funcs(funcs,alfabeto, new_q0):
     new_funcs = {"funcoes": {}}
-    new_f = {"F": []}
-    new_q0 = {"q0": []}
+    stack = [new_q0]
+    lista_estados_criados = []
+    while stack:
+        current = stack.pop()
+        lista_conjunto = current.replace("{","").replace("}","").split(", ")
+        dicionario_temp = {}
+        dicionario_temp[current] = {}
+        if current not in lista_estados_criados:
+            for estado in lista_conjunto:
+                if estado in funcs["funcoes"]:
+                    for funcao in funcs["funcoes"][estado]:
+                        for a in alfabeto["alfabeto"]:
+                            if a == funcao[0]:
+                                if a in dicionario_temp[current]:
+                                    if funcao[1] not in dicionario_temp[current][a]:
+                                        dicionario_temp[current][a].append(funcao[1])
+                                else:
+                                    novos_dados = {a: [funcao[1]]}
+                                    dicionario_temp[current].update(novos_dados)
+            for entrada in dicionario_temp[current]:
+                conjunto_temp = entrada
+                for par_conjunto in dicionario_temp[current][entrada]:
+                    e_fecho = epsilon_closure(par_conjunto,funcs)
+                    conjunto_temp += ", " + e_fecho
+                destino = sorted(set(conjunto_temp.replace("{","").replace("}","").split(", ")))
+                conjunto_destino = "{"
+                for i, valor in enumerate(destino):
+                    if 0 < i < len(destino)-1:
+                        conjunto_destino = conjunto_destino + valor + ", "
+                    elif i == len(destino)-1:
+                        conjunto_destino = conjunto_destino + valor + "}"
+                stack.append(conjunto_destino)
+                if current in new_funcs["funcoes"]:
+                    new_funcs["funcoes"][current].append([entrada, conjunto_destino])
+                else:
+                    new_funcs["funcoes"][current] = [[entrada, conjunto_destino]]
+            lista_estados_criados.append(current)
+    return new_funcs
 
+def afnd_to_afd(q, alfabeto, funcs, q_inicial, f):
+    partes_q = {"Q": []}
+    partes_f = {"F": []}
+    new_q0 = {"q0": []}
+    new_q = {"Q": []}
+    new_f = {"F": []}
     # Gerar todas as combinações possíveis de estados
     estados = q["Q"]
     for tamanho in range(1, len(estados) + 1):  # Subconjuntos de tamanhos 1 até len(estados)
         for combinacao in combinations(estados, tamanho):
             conjunto_str = "{" + ", ".join(combinacao) + "}"
-            new_q["Q"].append(conjunto_str)
+            partes_q["Q"].append(conjunto_str)
     #estado vazio
-    new_q["Q"].append("∅")
+    partes_q["Q"].append("∅")
     # Verificar quais estados são finais
-    for estado in new_q["Q"]:
+    for estado in partes_q["Q"]:
         partes_estado = estado.strip("{}").split(", ")
         for elemento in partes_estado:
             if (elemento in f["F"]):
-                new_f["F"].append(estado)
+                partes_f["F"].append(estado)
     #q0 = E_fecho(q0)
-    new_q0["q0"] = epsilon_closure_q0("q0", funcs)
+    new_q0["q0"].append(epsilon_closure(q_inicial["q0"][0], funcs))
     # Novas funcoes
-
-
+    new_funcs = combinacao_funcs(funcs,alfabeto,new_q0["q0"][0])
+    #removendo estados inacancalveis
+    for estado_alcancavel in new_funcs["funcoes"]:
+        if estado_alcancavel in partes_q["Q"]:
+            new_q["Q"].append(estado_alcancavel)
+        if estado_alcancavel in partes_f["F"]:
+            new_f["F"].append(estado_alcancavel)
     return new_q, alfabeto, new_funcs, new_q0, new_f
 
 def check_dicts_txt(dicionario, chave, linha_tratada):
@@ -123,7 +173,7 @@ def check_funcoes_transicao(dicionario, chave, linha_tratada):
     dicionario[chave] = dict_temp
     return dicionario
 
-with open("entrada.txt", "r") as file:
+with open("entrada.txt", "r", encoding="utf-8") as file:
     line = file.readline()
     q = {}
     sigma = {}
@@ -153,5 +203,6 @@ print(funcs)
 print(q_inicial)
 print(f)
 
-#return_txt("AFN",q,alfabeto,funcs,q_inicial,f, "# AFN Original \n")
-print(afnd_to_afd(q,alfabeto,funcs,q_inicial,f))
+return_txt("AFN",q,alfabeto,funcs,q_inicial,f, "# AFN Original")
+new_q,new_alfabeto,new_funcs,new_q0,new_f = afnd_to_afd(q,alfabeto,funcs,q_inicial,f)
+return_txt("AFD",new_q,new_alfabeto,new_funcs,new_q0,new_f, "# AFD Determinizado")
