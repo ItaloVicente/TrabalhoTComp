@@ -173,7 +173,40 @@ def check_funcoes_transicao(dicionario, chave, linha_tratada):
     dicionario[chave] = dict_temp
     return dicionario
 
+def reverso_automato(q, alfabeto, funcs, q_inicial, f):
+
+    '''
+    reverso automato
+    ----------------
+
+    A função tem um dicionario para guardar as transições da funcao reversa. Para cada estado dentro de funcs na chave 
+    "funcoes" e para cada transição dentro dado o estado em funcs["funcoes"], é pego o simbolo e o proximo estado dentro da transicao 
+    (ex: {q0} : {q0,0 (simbolo) -> q0(proximo estado)}). 
+    Se o proximo estado nao estiver no dicionario de funcoes reversas, entao o proximo estado sera a chave 
+    e o simbolo e o estado atual pertencerão a lista de valores. 
+    Caso contrario, o simbolo e o estado atual serao adicionados a lista de valores do proximo estado.
+    Por ultimo, define-se o estado inicial do automato reverso que sera o estado final do automato original e 
+    o estado final do automato reverso sera o estado inicial do automato original.
+
+    '''
+    funcs_reverso = {"funcoes": {}}
+
+    for estado in funcs["funcoes"]:
+        for transicao in funcs["funcoes"][estado]:
+            simbolo, proximo_estado = transicao
+            if proximo_estado not in funcs_reverso["funcoes"]:
+                funcs_reverso["funcoes"][proximo_estado] = [[simbolo, estado]]
+            else:
+                funcs_reverso["funcoes"][proximo_estado].append([simbolo, estado])
+
+    q_inicial_reverso = {"q0": f["F"][:]}
+    f_reverso = {"F": q_inicial["q0"][:]}
+
+    return q, alfabeto, funcs_reverso, q_inicial_reverso, f_reverso
+
+
 with open("entrada.txt", "r", encoding="utf-8") as file:
+
     line = file.readline()
     q = {}
     sigma = {}
@@ -206,3 +239,11 @@ print(f)
 return_txt("AFN",q,alfabeto,funcs,q_inicial,f, "# AFN Original")
 new_q,new_alfabeto,new_funcs,new_q0,new_f = afnd_to_afd(q,alfabeto,funcs,q_inicial,f)
 return_txt("AFD",new_q,new_alfabeto,new_funcs,new_q0,new_f, "# AFD Determinizado")
+
+''' 
+    A função reverso_automato é chamada para inverter o automato. 
+    O resultado é salvo em q_reverso, alfabeto_reverso, funcs_reverso, q_inicial_reverso, f_reverso
+    e é escrito no arquivo reverso.txt
+'''
+q_reverso, alfabeto_reverso, funcs_reverso, q_inicial_reverso, f_reverso = reverso_automato(q, alfabeto, funcs, q_inicial, f)
+return_txt("Reverso",q_reverso,alfabeto_reverso,funcs_reverso,q_inicial_reverso,f_reverso, "# Reverso")
