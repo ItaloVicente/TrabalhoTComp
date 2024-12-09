@@ -179,13 +179,13 @@ def reverso_automato(q, alfabeto, funcs, q_inicial, f):
     reverso automato
     ----------------
 
-    A função tem um dicionario para guardar as transições da funcao reversa. Para cada estado dentro de funcs na chave 
-    "funcoes" e para cada transição dentro dado o estado em funcs["funcoes"], é pego o simbolo e o proximo estado dentro da transicao 
-    (ex: {q0} : {q0,0 (simbolo) -> q0(proximo estado)}). 
-    Se o proximo estado nao estiver no dicionario de funcoes reversas, entao o proximo estado sera a chave 
-    e o simbolo e o estado atual pertencerão a lista de valores. 
+    A função tem um dicionario para guardar as transições da funcao reversa. Para cada estado dentro de funcs na chave
+    "funcoes" e para cada transição dentro dado o estado em funcs["funcoes"], é pego o simbolo e o proximo estado dentro da transicao
+    (ex: {q0} : {q0,0 (simbolo) -> q0(proximo estado)}).
+    Se o proximo estado nao estiver no dicionario de funcoes reversas, entao o proximo estado sera a chave
+    e o simbolo e o estado atual pertencerão a lista de valores.
     Caso contrario, o simbolo e o estado atual serao adicionados a lista de valores do proximo estado.
-    Por ultimo, define-se o estado inicial do automato reverso que sera o estado final do automato original e 
+    Por ultimo, define-se o estado inicial do automato reverso que sera o estado final do automato original e
     o estado final do automato reverso sera o estado inicial do automato original.
 
     '''
@@ -204,7 +204,22 @@ def reverso_automato(q, alfabeto, funcs, q_inicial, f):
 
     return q, alfabeto, funcs_reverso, q_inicial_reverso, f_reverso
 
-
+def check_if_word_is_accept(q, alfabeto, funcs, q_inicial, f, palavra):
+    estado_atual = q_inicial["q0"][0]
+    for i in palavra:
+        if i not in alfabeto["alfabeto"]:
+            print("Símbolo não pertencente ao alfabeto do automato")
+            return False
+        else:
+            for funcao in funcs["funcoes"]:
+                if estado_atual == funcao:
+                    for letra_alfabeto_com_destino in funcs["funcoes"][estado_atual]:
+                        if i == letra_alfabeto_com_destino[0]:
+                            estado_atual = letra_alfabeto_com_destino[1]
+    for estado_final in f["F"]:
+        if estado_atual == estado_final:
+            return True
+    return False
 with open("entrada.txt", "r", encoding="utf-8") as file:
 
     line = file.readline()
@@ -236,14 +251,22 @@ print(funcs)
 print(q_inicial)
 print(f)
 
-return_txt("AFN",q,alfabeto,funcs,q_inicial,f, "# AFN Original")
+#return_txt("AFN",q,alfabeto,funcs,q_inicial,f, "# AFN Original")
 new_q,new_alfabeto,new_funcs,new_q0,new_f = afnd_to_afd(q,alfabeto,funcs,q_inicial,f)
-return_txt("AFD",new_q,new_alfabeto,new_funcs,new_q0,new_f, "# AFD Determinizado")
+#return_txt("AFD",new_q,new_alfabeto,new_funcs,new_q0,new_f, "# AFD Determinizado")
 
 ''' 
     A função reverso_automato é chamada para inverter o automato. 
     O resultado é salvo em q_reverso, alfabeto_reverso, funcs_reverso, q_inicial_reverso, f_reverso
     e é escrito no arquivo reverso.txt
 '''
-q_reverso, alfabeto_reverso, funcs_reverso, q_inicial_reverso, f_reverso = reverso_automato(q, alfabeto, funcs, q_inicial, f)
-return_txt("Reverso",q_reverso,alfabeto_reverso,funcs_reverso,q_inicial_reverso,f_reverso, "# Reverso")
+q_reverso, alfabeto_reverso, funcs_reverso, q_inicial_reverso, f_reverso = reverso_automato(new_q, new_alfabeto, new_funcs, new_q0, new_f)
+#return_txt("Reverso",q_reverso,alfabeto_reverso,funcs_reverso,q_inicial_reverso,f_reverso, "# Reverso")
+palavra = input("Informe a entrada para o automato que voce colocou em entrada.txt")
+result = check_if_word_is_accept(new_q, new_alfabeto, new_funcs, new_q0, new_f, palavra)
+print(f"Cadeia: {palavra}")
+if result:
+    print(f"Resultado: Aceita")
+else:
+    print(f"Resultado: Rejeitada")
+print("Arquivos gerados: AFN.txt, AFD.txt, REV.txt, COMP.txt")
