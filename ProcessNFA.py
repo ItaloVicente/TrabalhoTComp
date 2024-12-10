@@ -141,7 +141,8 @@ def afnd_to_afd(q, alfabeto, funcs, q_inicial, f):
 
     # Novas funcoes
     new_funcs = combinacao_funcs(funcs,alfabeto,new_q0["q0"][0])
-    #removendo estados inacancalveis
+
+    #removendo estados inalcancalveis
     for estado_alcancavel in new_funcs["funcoes"]:
         if estado_alcancavel in partes_q["Q"]:
             new_q["Q"].append(estado_alcancavel)
