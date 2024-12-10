@@ -277,7 +277,7 @@ new_q,new_alfabeto,new_funcs,new_q0,new_f = afnd_to_afd(q,alfabeto,funcs,q_inici
 '''
 q_reverso, alfabeto_reverso, funcs_reverso, q_inicial_reverso, f_reverso = reverso_automato(new_q, new_alfabeto, new_funcs, new_q0, new_f)
 #return_txt("Reverso",q_reverso,alfabeto_reverso,funcs_reverso,q_inicial_reverso,f_reverso, "# Reverso")
-palavra = input("Informe a entrada para o automato que voce colocou em entrada.txt")
+palavra = input("Informe a entrada para o automato que voce colocou em entrada.txt\n")
 result = check_if_word_is_accept(new_q, new_alfabeto, new_funcs, new_q0, new_f, palavra)
 print(f"Cadeia: {palavra}")
 if result:
