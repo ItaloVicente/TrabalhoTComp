@@ -5,7 +5,7 @@
     Professor: Bonfim Amaro
 
     Alunos : 
-    - Italo Vicente
+    - Italo Vicente Oliveira Uchoa: 1631469
     - Luiz Gustavo
     - Janaína Ribeiro
 
@@ -140,34 +140,14 @@ class Automato:
             file.write(estados_finais)
             file.close()
 
-        
-
     def epsilon_closure(self, estado, funcs):
-
-        '''
-
-        epsilon_closure
-        ----------------
-        A função epsilon_closure tem como objetivo retornar o fecho epsilon de um estado. Para isso, é criado uma lista
-        chamada fecho que armazena o estado inicial. Em seguida, é criado uma pilha chamada stack que armazena o estado inicial.
-        Enquanto a pilha stack não estiver vazia, o estado atual é retirado da pilha. Se o estado atual estiver nas funções de transição,
-        para cada transição em funcs["funcoes"][estado], é verificado se o estado atual possui transições com o simbolo "E".
-
-        Parametros
-        ----------
-        estado : str
-        funcs : dict
-
-        Retorno
-        -------
-        new_q0 : str
-            
-        '''
+        # Inicia o fecho com o próprio estado
         fecho = [estado]
+        # Pilha para explorar novos estados
         stack = [estado]
-
         while stack:
             current = stack.pop()
+            # Verificar se há transições "E" a partir do estado atual
             if estado in funcs["funcoes"]:
                 for transicoes in funcs["funcoes"][current]:
                     if "E" in transicoes[0]:
@@ -179,43 +159,39 @@ class Automato:
                             fecho.append(prox_estado)
         new_q0 = "{"
         for i, estado in enumerate(fecho):
-            if i != len(fecho)-1:
+            if i != len(fecho) - 1:
                 new_q0 = new_q0 + estado + ", "
-            elif i == len(fecho)-1:
+            elif i == len(fecho) - 1:
                 new_q0 = new_q0 + estado + "}"
         return new_q0
-    
-    def combinacao_funcs(self, funcs,alfabeto, new_q0):
 
-        '''
-
-        combinacao_funcs
-        ----------------
-        A função combinacao_funcs tem como objetivo criar um novo dicionario de funções de transição para o automato finito deterministico (AFD).
-        Para isso, é criado um dicionario chamado new_funcs que armazena as funções de transição do automato finito deterministico (AFD).
-        Em seguida, é criado uma pilha chamada stack que armazena o estado inicial. Enquanto a pilha stack não estiver vazia, o estado atual é retirado da pilha.
-        Se o estado atual estiver nas funções de transição, para cada transição em funcs["funcoes"][estado],
-        é verificado se o estado atual possui transições com o simbolo "E".
-
-        Parametros
-        ----------
-        funcs : dict
-        alfabeto : dict
-        new_q0 : str
-
-        Retorno
-        -------
-        new_funcs : dict
-
-        '''
-        
-
+    def combinacao_funcs(self, funcs, alfabeto, new_q0):
         new_funcs = {"funcoes": {}}
         stack = [new_q0]
         lista_estados_criados = []
         while stack:
             current = stack.pop()
-            lista_conjunto = current.replace("{","").replace("}","").split(", ")
+            lista_conjunto = [current]
+            if current not in funcs["funcoes"]:
+                lista_conjunto = current[1:-1]
+                lista = []
+                nivel = 0
+                elemento = ''
+                for char in lista_conjunto:
+                    if char == ',' and nivel == 0:  # Se for uma vírgula fora de um conjunto, separa
+                        lista.append(elemento.strip())
+                        elemento = ''
+                    else:
+                        elemento += char
+                        if char == '{':  # Aumenta o nível de profundidade
+                            nivel += 1
+                        elif char == '}':  # Diminui o nível de profundidade
+                            nivel -= 1
+
+                # Adiciona o último elemento
+                if elemento.strip():
+                    lista.append(elemento.strip())
+                lista_conjunto = lista
             dicionario_temp = {}
             dicionario_temp[current] = {}
             if current not in lista_estados_criados:
@@ -233,14 +209,14 @@ class Automato:
                 for entrada in dicionario_temp[current]:
                     conjunto_temp = entrada
                     for par_conjunto in dicionario_temp[current][entrada]:
-                        e_fecho = self.epsilon_closure(par_conjunto,funcs)
+                        e_fecho = self.epsilon_closure(par_conjunto, funcs)
                         conjunto_temp += ", " + e_fecho
-                    destino = sorted(set(conjunto_temp.replace("{","").replace("}","").split(", ")))
+                    destino = sorted(set(conjunto_temp.replace("{", "").replace("}", "").split(", ")))
                     conjunto_destino = "{"
                     for i, valor in enumerate(destino):
-                        if 0 < i < len(destino)-1:
+                        if 0 < i < len(destino) - 1:
                             conjunto_destino = conjunto_destino + valor + ", "
-                        elif i == len(destino)-1:
+                        elif i == len(destino) - 1:
                             conjunto_destino = conjunto_destino + valor + "}"
                     stack.append(conjunto_destino)
                     if current in new_funcs["funcoes"]:
@@ -250,58 +226,36 @@ class Automato:
                 lista_estados_criados.append(current)
         return new_funcs
 
-    def afnd_to_afd(self):
-
-        '''
-
-        afnd_to_afd
-        -----------
-        A função afnd_to_afd tem como objetivo transformar um automato finito não deterministico (AFND) em um automato finito deterministico (AFD).
-        Para isso, é criado um dicionario chamado partes_q que armazena as partes do conjunto de estados. 
-        São criados os seguintes dicionarios: partes_f, new_q0, new_q, new_f e new_funcs.
-        A logica implementada utiliza as partes do conjunto de estados para criar um novo automato finito deterministico (AFD).
-        Para cada estado em partes_q, é verificado se o estado é um estado final. Se o estado for um estado final, ele é adicionado em partes_f.
-        Para cada estado alcancavel em new_funcs["funcoes"], é verificado se o estado alcancavel esta em partes_q. Se o estado alcancavel estiver em partes_q,
-        ele é adicionado em new_q. Se o estado alcancavel estiver em partes_f, ele é adicionado em new_f.
-
-
-        Retorno   
-        -------
-        new_q : dict
-        alfabeto : dict
-        new_funcs : dict
-        new_q0 : dict
-        new_f : dict
-
-        '''
-
-        q, alfabeto, funcs, q_inicial, f = self.read_txt()
-
+    def afnd_to_afd(self, q, alfabeto, funcs, q_inicial, f):
         partes_q = {"Q": []}
         partes_f = {"F": []}
         new_q0 = {"q0": []}
         new_q = {"Q": []}
         new_f = {"F": []}
+        # Gerar todas as combinações possíveis de estados
         estados = q["Q"]
-        for tamanho in range(1, len(estados) + 1): 
+        for tamanho in range(1, len(estados) + 1):  # Subconjuntos de tamanhos 1 até len(estados)
             for combinacao in combinations(estados, tamanho):
                 conjunto_str = "{" + ", ".join(combinacao) + "}"
                 partes_q["Q"].append(conjunto_str)
+        # estado vazio
         partes_q["Q"].append("∅")
+        # Verificar quais estados são finais
         for estado in partes_q["Q"]:
             partes_estado = estado.strip("{}").split(", ")
             for elemento in partes_estado:
                 if (elemento in f["F"]):
                     partes_f["F"].append(estado)
+        # q0 = E_fecho(q0)
         new_q0["q0"].append(self.epsilon_closure(q_inicial["q0"][0], funcs))
-        new_funcs = self.combinacao_funcs(funcs,alfabeto,new_q0["q0"][0])
+        # Novas funcoes
+        new_funcs = self.combinacao_funcs(funcs, alfabeto, new_q0["q0"][0])
+        # removendo estados inacancalveis
         for estado_alcancavel in new_funcs["funcoes"]:
             if estado_alcancavel in partes_q["Q"]:
                 new_q["Q"].append(estado_alcancavel)
             if estado_alcancavel in partes_f["F"]:
                 new_f["F"].append(estado_alcancavel)
-
-        self.return_txt("AFD",new_q,alfabeto,new_funcs,new_q0,new_f, "# AFD Determinizado")
         return new_q, alfabeto, new_funcs, new_q0, new_f
 
     def check_dicts_txt(self,dicionario, chave, linha_tratada):
@@ -379,9 +333,7 @@ class Automato:
         return dicionario
 
 
-    def reverso_automato(self):
-
-        q, alfabeto, funcs, q_inicial, f = self.afnd_to_afd()
+    def reverso_automato(self, q, alfabeto, funcs, q_inicial, f):
 
         '''
         reverso automato
@@ -395,6 +347,7 @@ class Automato:
         Caso contrario, o simbolo e o estado atual serao adicionados a lista de valores do proximo estado.
         Por ultimo, define-se o estado inicial do automato reverso que sera o estado final do automato original e 
         o estado final do automato reverso sera o estado inicial do automato original.
+        De inicio ela terá transições E, mas no fim aplicamos o afn to afd.
 
         '''
 
@@ -408,17 +361,37 @@ class Automato:
                 else:
                     funcs_reverso["funcoes"][proximo_estado].append([simbolo, estado])
 
-        novo_estado_inicial = "q_incial"
+        novo_estado_inicial = "q_inicial"
+        q["Q"].append(novo_estado_inicial)
         funcs_reverso["funcoes"][novo_estado_inicial] = []
 
         for estado_final in f["F"]:
-            funcs_reverso["funcoes"][novo_estado_inicial].append(['ε', estado_final])
+            funcs_reverso["funcoes"][novo_estado_inicial].append(['E', estado_final])
 
         q_inicial_reverso = {"q0": [novo_estado_inicial]}
 
         f_reverso = {"F": q_inicial["q0"]}
+        #Transformando o AFN gerado com o reverso em AFD novamente
+        print(q, alfabeto, funcs_reverso, q_inicial_reverso, f_reverso)
+        new_q, alfabeto, new_funcs, new_q0, new_f = self.afnd_to_afd(q, alfabeto, funcs_reverso, q_inicial_reverso, f_reverso)
+        print()
+        print(new_q, alfabeto, new_funcs, new_q0, new_f)
+        self.return_txt("REV",new_q, alfabeto, new_funcs, new_q0, new_f, "# Reverso")
+        return new_q, alfabeto, new_funcs, new_q0, new_f
 
-        self.return_txt("REV",q,alfabeto,funcs_reverso,q_inicial_reverso,f_reverso, "# Reverso")
-        return q, alfabeto, funcs_reverso, q_inicial_reverso, f_reverso
-
-
+    def check_if_word_is_accept(self, q, alfabeto, funcs, q_inicial, f, palavra):
+        estado_atual = q_inicial["q0"][0]
+        for i in palavra:
+            if i not in alfabeto["alfabeto"]:
+                print("Símbolo não pertencente ao alfabeto do automato")
+                return False
+            else:
+                for funcao in funcs["funcoes"]:
+                    if estado_atual == funcao:
+                        for letra_alfabeto_com_destino in funcs["funcoes"][estado_atual]:
+                            if i == letra_alfabeto_com_destino[0]:
+                                estado_atual = letra_alfabeto_com_destino[1]
+        for estado_final in f["F"]:
+            if estado_atual == estado_final:
+                return True
+        return False
