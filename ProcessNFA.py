@@ -259,14 +259,6 @@ class Automato:
         A função afnd_to_afd tem como objetivo transformar um automato finito não deterministico (AFND) em um automato finito deterministico (AFD).
         Para isso, é criado um dicionario chamado partes_q que armazena as partes do conjunto de estados. 
         São criados os seguintes dicionarios: partes_f, new_q0, new_q, new_f e new_funcs.
-
-        partes_q: armazena as partes do conjunto de estados.
-        partes_f: armazena as partes do conjunto de estados finais.
-        new_q0: armazena o estado inicial do automato finito deterministico.
-        new_q: armazena os estados do automato finito deterministico.
-        new_f: armazena os estados finais do automato finito deterministico.
-        new_funcs: armazena as funções de transição do automato finito deterministico.
-        
         A logica implementada utiliza as partes do conjunto de estados para criar um novo automato finito deterministico (AFD).
         Para cada estado em partes_q, é verificado se o estado é um estado final. Se o estado for um estado final, ele é adicionado em partes_f.
         Para cada estado alcancavel em new_funcs["funcoes"], é verificado se o estado alcancavel esta em partes_q. Se o estado alcancavel estiver em partes_q,
@@ -313,6 +305,26 @@ class Automato:
         return new_q, alfabeto, new_funcs, new_q0, new_f
 
     def check_dicts_txt(self,dicionario, chave, linha_tratada):
+    
+        '''
+        
+        check_dicts_txt
+        ---------------
+        A função check_dicts_txt tem como objetivo adicionar as informações de estados, alfabeto, estado inicial e estados finais em um dicionario.
+        Para cada linha tratada, é verificado se a linha contem virgula. Se a linha contem virgula, 
+        a virgula é removida e a linha tratada é adicionada ao dicionario.
+
+        Parametros
+        ----------
+        dicionario : dict
+        chave : str
+        linha_tratada : list    
+        
+        Retorno
+        -------
+        dicionario : dict
+        
+        '''
         for i in range(1, len(linha_tratada)):
             if not dicionario:
                 L_temp = []
@@ -326,6 +338,28 @@ class Automato:
         return dicionario
     
     def check_funcoes_transicao(self, dicionario, chave, linha_tratada):
+
+        '''
+
+        check_funcoes_transicao
+        -----------------------
+        A função check_funcoes_transicao tem como objetivo adicionar as informações
+        de funções de transição em um dicionario. Para cada linha tratada, é verificado se a linha contem virgula.
+        Se a linha contem virgula, a virgula é removida e a linha tratada é adicionada ao dicionario.
+        Caso contrario, a linha tratada é adicionada ao dicionario.
+
+        Parametros
+        ----------
+        dicionario : dict
+        chave : str
+        linha_tratada : list
+
+        Retorno
+        -------
+        dicionario : dict
+
+        '''
+
         for i in range(0, len(linha_tratada)):
             if "," in linha_tratada[i]:
                 remover_virgula = linha_tratada[i].replace(",", "")
@@ -363,6 +397,7 @@ class Automato:
         o estado final do automato reverso sera o estado inicial do automato original.
 
         '''
+
         funcs_reverso = {"funcoes": {}}
 
         for estado in funcs["funcoes"]:
