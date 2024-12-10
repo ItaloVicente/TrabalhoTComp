@@ -418,7 +418,7 @@ class Automato:
 
         f_reverso = {"F": q_inicial["q0"]}
 
-        self.return_txt("Reverso",q,alfabeto,funcs_reverso,q_inicial_reverso,f_reverso, "# Reverso")
+        self.return_txt("REV",q,alfabeto,funcs_reverso,q_inicial_reverso,f_reverso, "# Reverso")
         return q, alfabeto, funcs_reverso, q_inicial_reverso, f_reverso
 
 
