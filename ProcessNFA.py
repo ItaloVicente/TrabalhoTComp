@@ -164,6 +164,69 @@ class Automato:
                 new_q0 = new_q0 + estado + "}"
         return new_q0
 
+    def parse_string(self, entrada):
+        resultado = []
+        buffer = ""
+        chave_aberta = 0  # Contador de níveis de chaves
+
+        for char in entrada:
+            if char == "{":
+                chave_aberta += 1
+                buffer += char
+            elif char == "}":
+                chave_aberta -= 1
+                buffer += char
+                # Quando todas as chaves abertas são fechadas, adiciona o item ao resultado
+                if chave_aberta == 0:
+                    resultado.append(buffer.strip())
+                    buffer = ""
+            elif char == "," and chave_aberta == 0:
+                # Adiciona itens fora das chaves diretamente ao resultado
+                if buffer.strip():
+                    resultado.append(buffer.strip())
+                buffer = ""
+            else:
+                buffer += char
+
+        # Adiciona o último item, se existir
+        if buffer.strip():
+            resultado.append(buffer.strip())
+
+        # Remove chaves duplas
+        resultado = [item if not (item.startswith("{{") and item.endswith("}}"))
+                     else "{" + item.strip("{}") + "}" for item in resultado]
+
+        return resultado
+
+    def parse_conjunto_string(self, entrada):
+        resultado = []
+        buffer = ""
+        chave_aberta = 0  # Contador de níveis de chaves
+
+        for char in entrada:
+            if char == "{":
+                chave_aberta += 1
+                buffer += char
+            elif char == "}":
+                chave_aberta -= 1
+                buffer += char
+                # Quando todas as chaves abertas são fechadas, adiciona o item ao resultado
+                if chave_aberta == 0:
+                    resultado.append(buffer.strip())
+                    buffer = ""
+            elif char == "," and chave_aberta == 0:
+                # Adiciona itens fora das chaves diretamente ao resultado
+                if buffer.strip():
+                    resultado.append(buffer.strip())
+                buffer = ""
+            else:
+                buffer += char
+
+        # Adiciona o último item, se existir
+        if buffer.strip():
+            resultado.append(buffer.strip())
+
+        return resultado
     def combinacao_funcs(self, funcs, alfabeto, new_q0):
         new_funcs = {"funcoes": {}}
         stack = [new_q0]
@@ -172,23 +235,11 @@ class Automato:
             current = stack.pop()
             lista_conjunto = [current]
             if current not in funcs["funcoes"]:
+                #focar aqui, como faco para ele nao remover as chaves dos subconjuntos futuros
                 lista_conjunto = current[1:-1]
-                lista = []
-                nivel = 0
-                elemento = ''
-                for char in lista_conjunto:
-                    if char == ',' and nivel == 0:  # Se for uma vírgula fora de um conjunto, separa
-                        lista.append(elemento.strip())
-                        elemento = ''
-                    else:
-                        elemento += char
-                        if char == '{':  # Aumenta o nível de profundidade
-                            nivel += 1
-                        elif char == '}':  # Diminui o nível de profundidade
-                            nivel -= 1
-                if elemento.strip():
-                    lista.append(elemento.strip())
-                lista_conjunto = lista
+                lista_conjunto = self.parse_conjunto_string(lista_conjunto)
+                print(lista_conjunto)
+
             dicionario_temp = {}
             dicionario_temp[current] = {}
             if current not in lista_estados_criados:
@@ -218,6 +269,7 @@ class Automato:
                     for par_conjunto in dicionario_temp[current][entrada]:
                         e_fecho = self.epsilon_closure(par_conjunto, funcs)
                         conjunto_temp += ", " + e_fecho
+                    conjunto_total = self.parse_string(conjunto_temp)
                     destino = sorted(set(conjunto_temp.replace("{", "").replace("}", "").split(", ")))
                     conjunto_destino = "{"
                     for i, valor in enumerate(destino):
@@ -225,6 +277,7 @@ class Automato:
                             conjunto_destino = conjunto_destino + valor + ", "
                         elif i == len(destino) - 1:
                             conjunto_destino = conjunto_destino + valor + "}"
+                    print(conjunto_total, destino)
                     stack.append(conjunto_destino)
                     if current in new_funcs["funcoes"]:
                         new_funcs["funcoes"][current].append([entrada, conjunto_destino])
@@ -235,6 +288,7 @@ class Automato:
 
     # Função para normalizar conjuntos internos
     def normalizar_conjunto(self,conjunto):
+        #print(conjunto)
         if conjunto.count("{")>1:
             elementos = conjunto[1:-1]
             # Padrão para encontrar elementos separados por vírgula, incluindo subconjuntos
