@@ -367,6 +367,7 @@ class Automato:
                     funcao_for_vazio = [for_vazio, "∅"]
                     new_funcs["funcoes"][novos_estados_funcs].append(funcao_for_vazio)
         # Removendo estados inalcançáveis e combinando conjuntos
+        print(partes_f)
         for estado_alcancavel in new_funcs["funcoes"]:
             # Normaliza o estado atual
             diferentes_formas = self.combinacao_conjunto(estado_alcancavel)
@@ -502,6 +503,8 @@ class Automato:
     def check_if_word_is_accept(self, q, alfabeto, funcs, q_inicial, f, palavra):
         estado_atual = q_inicial["q0"][0]
         for i in palavra:
+            print(i)
+            verificador = False
             if i not in alfabeto["alfabeto"]:
                 print("Símbolo não pertencente ao alfabeto do automato")
                 return False
@@ -509,8 +512,10 @@ class Automato:
                 for funcao in funcs["funcoes"]:
                     if estado_atual == funcao:
                         for letra_alfabeto_com_destino in funcs["funcoes"][estado_atual]:
-                            if i == letra_alfabeto_com_destino[0]:
+                            if i == letra_alfabeto_com_destino[0] and verificador == False:
                                 estado_atual = letra_alfabeto_com_destino[1]
+                                verificador = True
+                                print(estado_atual)
         for estado_final in f["F"]:
             if estado_atual == estado_final:
                 return True
