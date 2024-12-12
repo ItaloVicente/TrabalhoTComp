@@ -220,7 +220,6 @@ class Automato:
             if current not in funcs["funcoes"]:
                 lista_conjunto = current[1:-1]
                 lista_conjunto = self.parse_conjunto_string(lista_conjunto)
-                #print(lista_conjunto)
 
             dicionario_temp = {}
             dicionario_temp[current] = {}
@@ -350,8 +349,6 @@ class Automato:
         new_q0["q0"].append(self.epsilon_closure(q_inicial["q0"][0], funcs))
         # Novas funcoes
         new_funcs = self.combinacao_funcs(funcs, alfabeto, new_q0["q0"][0])
-        print(partes_q)
-        print(partes_f)
         #Checando se todos estados possuem uma funcao para um alfabeto
         for novos_estados_funcs in new_funcs["funcoes"]:
             tamanho_abc = len(alfabeto["alfabeto"])
@@ -373,7 +370,7 @@ class Automato:
         for estado_alcancavel in new_funcs["funcoes"]:
             # Normaliza o estado atual
             diferentes_formas = self.combinacao_conjunto(estado_alcancavel)
-            print(diferentes_formas)
+
             for diferente_forma in diferentes_formas:
                 if diferente_forma not in new_q["Q"]:
                     if diferente_forma in partes_q["Q"]:
@@ -497,11 +494,8 @@ class Automato:
 
         f_reverso = {"F": q_inicial["q0"]}
         # Transformando o AFN gerado com o reverso em AFD novamente
-        print(q, alfabeto, funcs_reverso, q_inicial_reverso, f_reverso)
         new_q, alfabeto, new_funcs, new_q0, new_f = self.afnd_to_afd(q, alfabeto, funcs_reverso, q_inicial_reverso,
                                                                      f_reverso)
-        print()
-        print(new_q, alfabeto, new_funcs, new_q0, new_f)
         self.return_txt("REV", new_q, alfabeto, new_funcs, new_q0, new_f, "# Reverso")
         return new_q, alfabeto, new_funcs, new_q0, new_f
 
