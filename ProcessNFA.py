@@ -164,40 +164,6 @@ class Automato:
                 new_q0 = new_q0 + estado + "}"
         return new_q0
 
-    def parse_string(self, entrada):
-        resultado = []
-        buffer = ""
-        chave_aberta = 0  # Contador de níveis de chaves
-
-        for char in entrada:
-            if char == "{":
-                chave_aberta += 1
-                buffer += char
-            elif char == "}":
-                chave_aberta -= 1
-                buffer += char
-                # Quando todas as chaves abertas são fechadas, adiciona o item ao resultado
-                if chave_aberta == 0:
-                    resultado.append(buffer.strip())
-                    buffer = ""
-            elif char == "," and chave_aberta == 0:
-                # Adiciona itens fora das chaves diretamente ao resultado
-                if buffer.strip():
-                    resultado.append(buffer.strip())
-                buffer = ""
-            else:
-                buffer += char
-
-        # Adiciona o último item, se existir
-        if buffer.strip():
-            resultado.append(buffer.strip())
-
-        # Remove chaves duplas
-        resultado = [item if not (item.startswith("{{") and item.endswith("}}"))
-                     else "{" + item.strip("{}") + "}" for item in resultado]
-
-        return resultado
-
     def parse_conjunto_string(self, entrada):
         resultado = []
         buffer = ""
@@ -227,6 +193,23 @@ class Automato:
             resultado.append(buffer.strip())
 
         return resultado
+
+    def parse_and_process_sets(self, input_string):
+        # Define o padrão para capturar números ou grupos de {} com qualquer nível de aninhamento
+        pattern = r'\d+|{(?:[^{}]|{[^{}]*})*}'
+        matches = re.findall(pattern, input_string)
+
+        processed = []
+        for match in matches:
+            if match.startswith("{{") and match.endswith("}}"):  # Para níveis aninhados
+                processed.append(match[1:-1])  # Remove apenas o nível externo de {}
+            elif match.startswith("{") and match.endswith("}"):  # Para um único nível de {}
+                inner_content = match[1:-1]  # Remove completamente {}
+                # Divide o conteúdo interno se houver vírgulas
+                processed.extend(inner_content.split(', '))
+            else:
+                processed.append(match)  # Números ou outros elementos permanecem como estão
+        return processed
     def combinacao_funcs(self, funcs, alfabeto, new_q0):
         new_funcs = {"funcoes": {}}
         stack = [new_q0]
@@ -235,10 +218,9 @@ class Automato:
             current = stack.pop()
             lista_conjunto = [current]
             if current not in funcs["funcoes"]:
-                #focar aqui, como faco para ele nao remover as chaves dos subconjuntos futuros
                 lista_conjunto = current[1:-1]
                 lista_conjunto = self.parse_conjunto_string(lista_conjunto)
-                print(lista_conjunto)
+                #print(lista_conjunto)
 
             dicionario_temp = {}
             dicionario_temp[current] = {}
@@ -268,49 +250,59 @@ class Automato:
                     conjunto_temp = entrada
                     for par_conjunto in dicionario_temp[current][entrada]:
                         e_fecho = self.epsilon_closure(par_conjunto, funcs)
+                        #e_fecho {q, p}
                         conjunto_temp += ", " + e_fecho
-                    conjunto_total = self.parse_string(conjunto_temp)
-                    destino = sorted(set(conjunto_temp.replace("{", "").replace("}", "").split(", ")))
+                    destino = self.parse_and_process_sets(conjunto_temp)
                     conjunto_destino = "{"
                     for i, valor in enumerate(destino):
                         if 0 < i < len(destino) - 1:
                             conjunto_destino = conjunto_destino + valor + ", "
                         elif i == len(destino) - 1:
                             conjunto_destino = conjunto_destino + valor + "}"
-                    print(conjunto_total, destino)
                     stack.append(conjunto_destino)
                     if current in new_funcs["funcoes"]:
                         new_funcs["funcoes"][current].append([entrada, conjunto_destino])
                     else:
                         new_funcs["funcoes"][current] = [[entrada, conjunto_destino]]
-                lista_estados_criados.append(current)
+                combinations_current = self.combinacao_conjunto(current)
+                for combinacao in combinations_current:
+                    lista_estados_criados.append(combinacao)
         return new_funcs
 
     # Função para normalizar conjuntos internos
-    def normalizar_conjunto(self,conjunto):
-        #print(conjunto)
-        if conjunto.count("{")>1:
+    def combinacao_conjunto(self,conjunto):
+        if conjunto.count("{") > 1:
             elementos = conjunto[1:-1]
-            # Padrão para encontrar elementos separados por vírgula, incluindo subconjuntos
             pattern = r"(\{[^}]+\}|[^,\s]+)"
-
-            # Encontra todos os elementos que correspondem ao padrão
             elementos = re.findall(pattern, elementos)
             todas_permutacoes = list(permutations(elementos))
             lista_with_combinacoes = []
             for combinacao in todas_permutacoes:
-                string = ""
-                for i, estado in enumerate(list(combinacao)):
-                    if i==0:
-                        string = "{" + estado + ", "
-                    elif 0 < i < len(combinacao) - 1:
-                        string = string + estado + ", "
-                    elif i == len(combinacao) - 1:
-                        string = string + estado + "}"
+                if len(combinacao) == 1:
+                    string = combinacao[0]
+                else:
+                    string = "{" + ", ".join(combinacao) + "}"
                 lista_with_combinacoes.append(string)
             return lista_with_combinacoes
-        return [conjunto]
+        else:
+            return [conjunto]
 
+    def string_para_lista_conjuntos_regex(self,string):
+        """Extrai os conjuntos delimitados por chaves de uma string.
+
+        Args:
+            string: A string de entrada.
+
+        Returns:
+            Uma lista com os conjuntos extraídos, sem aspas extras.
+        """
+        # Remove a primeira chave duplicada, se existir
+        if string.startswith('{{'):
+            string = string[1:]
+
+        pattern = r"\{(.+?)\}"
+        match = re.finditer(pattern, string)
+        return [m.group() for m in match]
     def afnd_to_afd(self, q, alfabeto, funcs, q_inicial, f):
         partes_q = {"Q": []}
         partes_f = {"F": []}
@@ -337,15 +329,29 @@ class Automato:
         partes_q["Q"].append("∅")
         # Verificar quais estados são finais
         for estado in partes_q["Q"]:
-            partes_estado = estado.strip("{}").split(", ")
-            for elemento in partes_estado:
-                if (elemento in f["F"][0]):
-                    if elemento not in partes_f["F"]:
+            if estado in funcs["funcoes"]:
+                if estado in f["F"]:
+                    if estado not in partes_f["F"]:
                         partes_f["F"].append(estado)
+            else:
+                lista_regex = self.string_para_lista_conjuntos_regex(estado)
+                if len(lista_regex) == 1:
+                    partes_estado = estado.strip("{}").split(", ")
+                    for elemento in partes_estado:
+                        if elemento in f["F"]:
+                            if elemento not in partes_f["F"]:
+                                partes_f["F"].append(estado)
+                else:
+                    for elemento in lista_regex:
+                        if elemento in f["F"]:
+                            if estado not in partes_f["F"]:
+                                partes_f["F"].append(estado)
         # q0 = E_fecho(q0)
         new_q0["q0"].append(self.epsilon_closure(q_inicial["q0"][0], funcs))
         # Novas funcoes
         new_funcs = self.combinacao_funcs(funcs, alfabeto, new_q0["q0"][0])
+        print(partes_q)
+        print(partes_f)
         #Checando se todos estados possuem uma funcao para um alfabeto
         for novos_estados_funcs in new_funcs["funcoes"]:
             tamanho_abc = len(alfabeto["alfabeto"])
@@ -363,13 +369,12 @@ class Automato:
                 for for_vazio in lista_faltante:
                     funcao_for_vazio = [for_vazio, "∅"]
                     new_funcs["funcoes"][novos_estados_funcs].append(funcao_for_vazio)
-
-        # Removendo estados inalcançáveis e normalizando conjuntos
+        # Removendo estados inalcançáveis e combinando conjuntos
         for estado_alcancavel in new_funcs["funcoes"]:
             # Normaliza o estado atual
-            diferentes_formas = self.normalizar_conjunto(estado_alcancavel)
+            diferentes_formas = self.combinacao_conjunto(estado_alcancavel)
+            print(diferentes_formas)
             for diferente_forma in diferentes_formas:
-
                 if diferente_forma not in new_q["Q"]:
                     if diferente_forma in partes_q["Q"]:
                         new_q["Q"].append(diferente_forma)
