@@ -1,4 +1,4 @@
-#AFD Convertido
+# Complemento
 Q: {q0}, {q0, q1, q2}, {q0, q2}
 Σ: 0, 1
 δ: 
@@ -9,4 +9,4 @@ Q: {q0}, {q0, q1, q2}, {q0, q2}
 {q0, q2}, 0 -> {q0}
 {q0, q2}, 1 -> {q0, q1, q2}
 q0: {q0}
-F: {q0, q1, q2}, {q0, q2}
+F: {q0}

@@ -13,6 +13,7 @@
 
 from itertools import combinations, permutations
 import re
+import copy
 
 
 class Automato:
@@ -520,3 +521,27 @@ class Automato:
             if estado_atual == estado_final:
                 return True
         return False
+    
+
+    
+    def complemento_automato(self, q, alfabeto, transicoes, q_inicial, finais):
+
+        '''
+        
+        complemento_automato
+        -----------------------
+        A função complemento_automato tem como objetivo obter o complemento do automato. Tendo o DFA para o automato original, 
+        basta transformar os antigos estados finais em não-finais, e vice-versa, ou seja: F_complemento = Q - F_original.
+
+        '''
+
+        #uma copia de Q é feita, para não alterar o automato. As outras variáveis são reutilizadas pois não são alteradas
+        diferença_QF = copy.deepcopy(q) 
+
+        #Retiramos de Q os estados finais originais, para obter os estados finais do complemento
+        diferença_QF = set(diferença_QF['Q'])-set(finais['F'])
+        finais_complemento = {"F": list(diferença_QF)}
+
+        self.return_txt("COMPLEMENTO", q, alfabeto, transicoes, q_inicial, finais_complemento, "# Complemento")
+        return q, alfabeto, transicoes, q_inicial, finais_complemento
+        
