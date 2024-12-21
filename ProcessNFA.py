@@ -10,10 +10,9 @@
     - Janaína Ribeiro
 
 '''
-
+import copy
 from itertools import combinations, permutations
 import re
-import copy
 
 
 class Automato:
@@ -368,7 +367,6 @@ class Automato:
                     funcao_for_vazio = [for_vazio, "∅"]
                     new_funcs["funcoes"][novos_estados_funcs].append(funcao_for_vazio)
         # Removendo estados inalcançáveis e combinando conjuntos
-        print(partes_f)
         for estado_alcancavel in new_funcs["funcoes"]:
             # Normaliza o estado atual
             diferentes_formas = self.combinacao_conjunto(estado_alcancavel)
@@ -503,8 +501,14 @@ class Automato:
 
     def check_if_word_is_accept(self, q, alfabeto, funcs, q_inicial, f, palavra):
         estado_atual = q_inicial["q0"][0]
+        if palavra == "":
+            for estado_final in f["F"]:
+                lista_combinacao_q0 = self.combinacao_conjunto(q_inicial["q0"][0])
+                for combinacao_q0 in lista_combinacao_q0:
+                    if combinacao_q0 == estado_final:
+                        return True
+            return False
         for i in palavra:
-            print(i)
             verificador = False
             if i not in alfabeto["alfabeto"]:
                 print("Símbolo não pertencente ao alfabeto do automato")
@@ -516,32 +520,30 @@ class Automato:
                             if i == letra_alfabeto_com_destino[0] and verificador == False:
                                 estado_atual = letra_alfabeto_com_destino[1]
                                 verificador = True
-                                print(estado_atual)
         for estado_final in f["F"]:
-            if estado_atual == estado_final:
-                return True
+            lista_combinacao_finais = self.combinacao_conjunto(estado_final)
+            for combinacao_final in lista_combinacao_finais:
+                if combinacao_final == estado_atual:
+                    return True
         return False
-    
 
-    
     def complemento_automato(self, q, alfabeto, transicoes, q_inicial, finais):
 
         '''
-        
+
         complemento_automato
         -----------------------
-        A função complemento_automato tem como objetivo obter o complemento do automato. Tendo o DFA para o automato original, 
+        A função complemento_automato tem como objetivo obter o complemento do automato. Tendo o DFA para o automato original,
         basta transformar os antigos estados finais em não-finais, e vice-versa, ou seja: F_complemento = Q - F_original.
 
         '''
 
-        #uma copia de Q é feita, para não alterar o automato. As outras variáveis são reutilizadas pois não são alteradas
-        diferença_QF = copy.deepcopy(q) 
+        # uma copia de Q é feita, para não alterar o automato. As outras variáveis são reutilizadas pois não são alteradas
+        diferença_QF = copy.deepcopy(q)
 
-        #Retiramos de Q os estados finais originais, para obter os estados finais do complemento
-        diferença_QF = set(diferença_QF['Q'])-set(finais['F'])
+        # Retiramos de Q os estados finais originais, para obter os estados finais do complemento
+        diferença_QF = set(diferença_QF['Q']) - set(finais['F'])
         finais_complemento = {"F": list(diferença_QF)}
 
         self.return_txt("COMPLEMENTO", q, alfabeto, transicoes, q_inicial, finais_complemento, "# Complemento")
         return q, alfabeto, transicoes, q_inicial, finais_complemento
-        
