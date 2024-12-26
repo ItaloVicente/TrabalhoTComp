@@ -140,6 +140,25 @@ class Automato:
             file.close()
 
     def epsilon_closure(self, estado, funcs):
+        '''
+                epsilon_closure
+                ---------------
+                A função calcula o fecho-ε (epsilon-closure) de um estado em um AFN.
+                Isso inclui o estado inicial e todos os estados que podem ser alcançados
+                a partir dele por transições epsilon.
+
+                Parâmetros
+                ----------
+                estado : str
+                    O estado inicial para calcular o fecho-ε.
+                funcs : dict
+                    As funções de transição do autômato.
+
+                Retorno
+                -------
+                str
+                    Uma string que representa o conjunto de estados no fecho-ε, formatada como {estado1, estado2, ...}.
+        '''
         # Inicia o fecho com o próprio estado
         fecho = [estado]
         # Pilha para explorar novos estados
@@ -165,6 +184,21 @@ class Automato:
         return new_q0
 
     def parse_conjunto_string(self, entrada):
+        '''
+                parse_conjunto_string
+                ---------------------
+                A função analisa uma string contendo conjuntos e os divide em uma lista de conjuntos ou elementos.
+
+                Parâmetros
+                ----------
+                entrada : str
+                    A string de entrada contendo conjuntos delimitados por chaves.
+
+                Retorno
+                -------
+                list
+                    Uma lista de conjuntos ou elementos extraídos da string de entrada.
+        '''
         resultado = []
         buffer = ""
         chave_aberta = 0  # Contador de níveis de chaves
@@ -195,6 +229,22 @@ class Automato:
         return resultado
 
     def parse_and_process_sets(self, input_string):
+        '''
+                parse_and_process_sets
+                ----------------------
+                A função identifica e processa conjuntos e elementos aninhados em uma string.
+                Ela separa elementos individuais e conjuntos, removendo níveis externos de chaves quando necessário.
+
+                Parâmetros
+                ----------
+                input_string : str
+                    A string de entrada contendo números e conjuntos aninhados.
+
+                Retorno
+                -------
+                list
+                    Uma lista contendo os elementos ou conjuntos processados.
+        '''
         # Define o padrão para capturar números ou grupos de {} com qualquer nível de aninhamento
         pattern = r'\d+|{(?:[^{}]|{[^{}]*})*}'
         matches = re.findall(pattern, input_string)
@@ -211,6 +261,25 @@ class Automato:
                 processed.append(match)  # Números ou outros elementos permanecem como estão
         return processed
     def combinacao_funcs(self, funcs, alfabeto, new_q0):
+        '''
+                combinacao_funcs
+                ----------------
+                A função cria novas funções de transição para um AFD baseado nas combinações de estados de um AFN.
+
+                Parâmetros
+                ----------
+                funcs : dict
+                    As funções de transição do AFN original.
+                alfabeto : dict
+                    O alfabeto do autômato.
+                new_q0 : str
+                    O estado inicial do AFD.
+
+                Retorno
+                -------
+                dict
+                    Um dicionário contendo as funções de transição do AFD gerado.
+        '''
         new_funcs = {"funcoes": {}}
         stack = [new_q0]
         lista_estados_criados = []
@@ -268,8 +337,23 @@ class Automato:
                     lista_estados_criados.append(combinacao)
         return new_funcs
 
-    # Função para normalizar conjuntos internos
     def combinacao_conjunto(self,conjunto):
+        '''
+                combinacao_conjunto
+                -------------------
+                A função gera todas as combinações possíveis de um conjunto de estados.
+                Visto que {q0,q1} e igual a {q1,q0}
+
+                Parâmetros
+                ----------
+                conjunto : str
+                    A string representando um conjunto de estados.
+
+                Retorno
+                -------
+                list
+                    Uma lista contendo todas as combinações possíveis do conjunto.
+        '''
         if conjunto.count("{") > 1:
             elementos = conjunto[1:-1]
             pattern = r"(\{[^}]+\}|[^,\s]+)"
@@ -303,6 +387,29 @@ class Automato:
         match = re.finditer(pattern, string)
         return [m.group() for m in match]
     def afnd_to_afd(self, q, alfabeto, funcs, q_inicial, f):
+        '''
+                afnd_to_afd
+                ----------
+                A função converte um AFN (Autômato Finito Não Determinístico) em um AFD (Autômato Finito Determinístico).
+
+                Parâmetros
+                ----------
+                q : dict
+                    O conjunto de estados do AFN.
+                alfabeto : dict
+                    O alfabeto do AFN.
+                funcs : dict
+                    As funções de transição do AFN.
+                q_inicial : dict
+                    O estado inicial do AFN.
+                f : dict
+                    Os estados finais do AFN.
+
+                Retorno
+                -------
+                tuple
+                    Uma tupla contendo os novos estados, alfabeto, funções de transição, estado inicial e estados finais do AFD.
+        '''
         partes_q = {"Q": []}
         partes_f = {"F": []}
         new_q0 = {"q0": []}
@@ -500,6 +607,31 @@ class Automato:
         return new_q, alfabeto, new_funcs, new_q0, new_f
 
     def check_if_word_is_accept(self, q, alfabeto, funcs, q_inicial, f, palavra):
+        '''
+                check_if_word_is_accept
+                -----------------------
+                A função verifica se uma palavra é aceita pelo autômato.
+
+                Parâmetros
+                ----------
+                q : dict
+                    O conjunto de estados do autômato.
+                alfabeto : dict
+                    O alfabeto do autômato.
+                funcs : dict
+                    As funções de transição do autômato.
+                q_inicial : dict
+                    O estado inicial do autômato.
+                f : dict
+                    Os estados finais do autômato.
+                palavra : str
+                    A palavra a ser verificada.
+
+                Retorno
+                -------
+                bool
+                    True se a palavra é aceita pelo autômato, False caso contrário.
+        '''
         estado_atual = q_inicial["q0"][0]
         if palavra == "":
             for estado_final in f["F"]:
