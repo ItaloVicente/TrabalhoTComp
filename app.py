@@ -27,25 +27,4 @@ if __name__ == "__main__":
         print(f"Resultado: Aceita")
     else:
         print(f"Resultado: Rejeitada")
-
-    # Teste de uma string para o reverso do automato passado em entrada.txt
-    palavra = input("Informe uma string para o reverso do automato que voce colocou em entrada.txt\n")
-    result = automato.check_if_word_is_accept(reverso_q, reverso_alfabeto, reverso_funcs, reverso_q0, finais_reverso, palavra)
-    print(f"Cadeia: {palavra}")
-    if result:
-        print(f"Resultado: Aceita")
-    else:
-        print(f"Resultado: Rejeitada")
-
-    # Teste da entrada para o complemento do automato passado em entrada.txt
-    palavra = input("Informe a entrada para o complemento que voce colocou em entrada.txt\n")
-    result = automato.check_if_word_is_accept(complemento_q, alfabeto_q, complemento_funcs, complemento_q0, finais_complemento, palavra)
-    print(f"Cadeia: {palavra}")
-    if result:
-        print(f"Resultado: Aceita")
-    else:
-        print(f"Resultado: Rejeitada")
-
-    print()
-    print()
     print("Arquivos gerados: AFN.txt, AFD.txt, REV.txt, COMPLEMENTO.txt")
